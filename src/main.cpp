@@ -89,8 +89,12 @@ void printLocalTime() {
     digitalWrite(amPin, (timeinfo.tm_hour < 12) ? HIGH : LOW);
     digitalWrite(pmPin, (timeinfo.tm_hour >= 12) ? HIGH : LOW);
   } 
-  else hour = timeinfo.tm_hour;
-  display.showNumberDecEx(timeinfo.tm_min + hour * 100, 0b01000000, false);
+  else hour = timeinfo.tm_hour * 100; 
+
+  // Account for hour 0 in 24 hr mode
+  if (hour != 0) display.showNumberDecEx(timeinfo.tm_min + hour, 0b01000000);
+  else display.showNumberDecEx((timeinfo.tm_min + hour) * 10, 0b10000000, true, (uint8_t)4U, 1);
+
   Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
 }
 
