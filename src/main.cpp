@@ -18,6 +18,12 @@ unsigned long currentTime, syncPrevTime, updateDisplay;
 int smoothBrightness = 0;
 bool timeSyncc = false;
 
+// Declare global variables to store previous values (improves efficiency)
+int prevHour = -1;
+int prevMinute = -1;
+bool prevAmPmState = false;
+bool zeroHour = false;
+
 void setup() {
   if(autoBrightness) pinMode(pResistor, INPUT);
   if(amPMMode) {
@@ -86,14 +92,36 @@ void printLocalTime() {
     else hour = timeinfo.tm_hour;
 
     // Set AM/PM pins based on hour
-    digitalWrite(amPin, (timeinfo.tm_hour < 12) ? HIGH : LOW);
-    digitalWrite(pmPin, (timeinfo.tm_hour >= 12) ? HIGH : LOW);
+    bool currentAmPmState = (timeinfo.tm_hour < 12);
+    if (currentAmPmState != prevAmPmState) {
+      digitalWrite(amPin, currentAmPmState ? HIGH : LOW);
+      digitalWrite(pmPin, !currentAmPmState ? HIGH : LOW);
+      prevAmPmState = currentAmPmState;
+    }
   } 
   else hour = timeinfo.tm_hour * 100; 
 
   // Account for hour 0 in 24 hr mode
-  if (hour != 0) display.showNumberDecEx(timeinfo.tm_min + hour, 0b01000000);
-  else display.showNumberDecEx((timeinfo.tm_min + hour) * 10, 0b10000000, true, (uint8_t)4U, 1);
+  if (hour != 0) {
+    if (hour != prevHour || timeinfo.tm_min != prevMinute) {
+      display.showNumberDecEx(timeinfo.tm_min + hour, 0b01000000);
+      prevHour = hour;
+      prevMinute = timeinfo.tm_min;
+      if (!zeroHour){
+        zeroHour = true;
+      }
+    }
+  } else {
+    if (hour != prevHour || timeinfo.tm_min != prevMinute) {
+      if (zeroHour) { // checks if its the first time it displays 0 so it resets display
+        display.showNumberDecEx(0, 0b01000000);
+        zeroHour = false;
+      }
+      display.showNumberDecEx((timeinfo.tm_min + hour) * 10, 0b10000000, true, (uint8_t)4U, 1);
+      prevHour = hour;
+      prevMinute = timeinfo.tm_min;
+    }
+  }
 
   Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
 }
