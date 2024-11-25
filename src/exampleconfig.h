@@ -1,4 +1,6 @@
-// fill out your wifi credentials (EDIT)
+// Remove the example in the filename before use
+
+// Fill out your wifi credentials (EDIT)
 const char* ssid = "";
 const char* password = "";
 
@@ -20,7 +22,19 @@ const char* timezone = "EST5EDT,M3.2.0,M11.1.0"; // (EDIT)
 #define offsetBrightness 0 // -7 - 7
 #define preSetBrightness 1 // 0-7
 
-// ENABLE AM/PM mode, any pins can be used
-#define amPMMode false
+// ENABLE AM/PM mode, any pins can be used 
+#define amPMMode false // false to disable and it will use 24 hour time
 #define amPin 26 
 #define pmPin 25
+
+// RGB LED Pins (must disable old LED pins if enabled)
+#define RGBLED false // false to disable
+#define rgbLEDType 0 // 0 for common anode, 1 for common cathode
+
+// #define amLEDRed 16
+// #define amLEDGreen 17
+// #define amLEDBlue 18
+
+// #define pmLEDRed 19
+// #define pmLEDGreen 21
+// #define pmLEDBlue 22
