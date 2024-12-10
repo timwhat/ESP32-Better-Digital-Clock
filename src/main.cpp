@@ -26,12 +26,20 @@ bool zeroHour = false;
 
 void setup() {
   if(autoBrightness) pinMode(pResistor, INPUT);
-  if(amPMMode) {
+  #ifdef amPMMode
     pinMode(amPin, OUTPUT); 
     pinMode(pmPin, OUTPUT);
     digitalWrite(amPin, LOW);
     digitalWrite(pmPin, LOW);
-  }
+    #ifdef RGBLED 
+      pinMode(amLEDRed, OUTPUT);
+      pinMode(amLEDGreen, OUTPUT);
+      pinMode(amLEDBlue, OUTPUT);
+      pinMode(pmLEDRed, OUTPUT);
+      pinMode(pmLEDGreen, OUTPUT);
+      pinMode(pmLEDBlue, OUTPUT);
+    #endif
+  #endif
     
   Serial.begin(9600);
   
@@ -58,11 +66,12 @@ void loop() {
         smoothBrightness += (smoothBrightness < pResistorVal) - (smoothBrightness > pResistorVal);
 
         display.setBrightness(smoothBrightness);
-
-        Serial.print("pR: ");
-        Serial.print(pResistorVal);
-        Serial.print("  \tB: ");
-        Serial.println(smoothBrightness);
+        if(SERIAL_DEBUG) {
+          Serial.print("pR: ");
+          Serial.print(pResistorVal);
+          Serial.print("  \tB: ");
+          Serial.println(smoothBrightness);
+        }
       }
       printLocalTime();
     }  
@@ -92,10 +101,16 @@ void printLocalTime() {
     else hour = timeinfo.tm_hour;
 
     // Set AM/PM pins based on hour
-    bool currentAmPmState = (timeinfo.tm_hour < 12);
+    bool currentAmPmState = timeinfo.tm_hour < 12;
     if (currentAmPmState != prevAmPmState) {
-      digitalWrite(amPin, currentAmPmState ? HIGH : LOW);
-      digitalWrite(pmPin, !currentAmPmState ? HIGH : LOW);
+      if (RGBLED) {
+        writeTOLED(currentAmPmState, 1);
+        writeTOLED(!currentAmPmState, 0);
+      }
+      else {
+        digitalWrite(amPin, currentAmPmState ? HIGH : LOW); 
+        digitalWrite(pmPin, !currentAmPmState ? HIGH : LOW);  
+      }
       prevAmPmState = currentAmPmState;
     }
   } 
@@ -123,23 +138,23 @@ void printLocalTime() {
     }
   }
 
-  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+  if (SERIAL_DEBUG) Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
 }
 
 void timeSync() {  
   // Connect to WiFi
-  Serial.printf("Connecting to %s ", ssid);
+  if (SERIAL_DEBUG) Serial.printf("Connecting to %s ", ssid);
   WiFi.begin(ssid, password);
     
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    if (SERIAL_DEBUG) Serial.print(".");
   }
-  Serial.println(" CONNECTED");
+  if (SERIAL_DEBUG) Serial.println(" CONNECTED");
 
   // delay(500);
   while (!time(nullptr)) {
-    Serial.println(F("Waiting for time sync..."));
+    if (SERIAL_DEBUG) Serial.println(F("Waiting for time sync..."));
     delay(500);
   }
 
@@ -153,3 +168,18 @@ void timeSync() {
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);
 }
+
+#ifdef RGBLED
+void writeTOLED(int amPM, float brightness) {
+  if (amPM == 0) { // AM
+    analogWrite(amLEDRed, staticColorRed * brightness);
+    analogWrite(amLEDGreen, staticColorGreen * brightness);
+    analogWrite(amLEDBlue, staticColorBlue * brightness);
+  }
+  else { // PM
+    analogWrite(pmLEDRed, staticColorRed * brightness);
+    analogWrite(pmLEDGreen, staticColorGreen * brightness);
+    analogWrite(pmLEDBlue, staticColorBlue * brightness);
+  }
+}
+#endif

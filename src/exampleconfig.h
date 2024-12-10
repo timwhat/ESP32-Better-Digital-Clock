@@ -1,5 +1,8 @@
 // Remove the example in the filename before use
 
+// Debug stuff
+#define SERIAL_DEBUG true // false to disable serial output
+
 // Fill out your wifi credentials (EDIT)
 const char* ssid = "";
 const char* password = "";
@@ -31,10 +34,19 @@ const char* timezone = "EST5EDT,M3.2.0,M11.1.0"; // (EDIT)
 #define RGBLED false // false to disable
 #define rgbLEDType 0 // 0 for common anode, 1 for common cathode
 
-// #define amLEDRed 16
-// #define amLEDGreen 17
-// #define amLEDBlue 18
+// RGB Modes (WIP will add more modes)
+#define RGBMode 0 // 0 for static color 
 
-// #define pmLEDRed 19
-// #define pmLEDGreen 21
-// #define pmLEDBlue 22
+// Define RGB color for static mode with individual 0-255 values (EDIT)
+#define staticColorRed 255   // Red value (0-255)
+#define staticColorGreen 0   // Green value (0-255)
+#define staticColorBlue 0    // Blue value (0-255)
+
+// RGB LED Pins (EDIT)
+#define amLEDRed 16
+#define amLEDGreen 17
+#define amLEDBlue 18
+
+#define pmLEDRed 19
+#define pmLEDGreen 21
+#define pmLEDBlue 22
